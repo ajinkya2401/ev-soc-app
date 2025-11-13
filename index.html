@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>EV SOC — Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#08140a" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Top section (Car info) -->
+    <header class="topbar">
+      <div class="car-meta">
+        <div id="carModel" class="car-model">No car</div>
+        <div id="carReg" class="car-reg">—</div>
+      </div>
+      <button id="editBtn" class="icon-btn" title="Edit car">⚙️</button>
+    </header>
+
+    <!-- Main card (Dashboard) -->
+    <main>
+      <section id="card" class="card" aria-live="polite">
+        <div class="meter">
+          <div id="socBig" class="soc-big">--%</div>
+          <div class="soc-gauge" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="gaugeFill" class="gauge-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="subline-wrap">
+          <div id="subLine" class="subline">Tap actions below</div>
+          <div id="timestamp" class="timestamp" aria-hidden="true"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom navigation -->
+    <nav class="bottom-bar" role="navigation" aria-label="Main actions">
+      <div class="tabs" role="tablist">
+        <button id="tabPrimary" class="tab active" role="tab" aria-selected="true">Primary</button>
+        <button id="tabSecondary" class="tab" role="tab" aria-selected="false">Secondary</button>
+      </div>
+
+      <!-- Primary Menu -->
+      <div id="primaryActions" class="action-group" role="group" aria-label="Primary actions">
+        <button id="startBtn" class="action large" aria-label="Start session">Start Session</button>
+        <button id="setSocBtn" class="action" aria-label="Set current SOC">Set Current SOC</button>
+        <button id="historyBtn" class="action" aria-label="View history">View History</button>
+      </div>
+
+      <!-- Secondary Menu -->
+      <div id="secondaryActions" class="action-group hidden" role="group" aria-label="Secondary actions">
+        <button id="addKwhBtn" class="action large accent" aria-label="Add kWh">Add kWh</button>
+        <button id="endBtn" class="action danger" aria-label="End session">End Session</button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Keypad modal -->
+  <div id="keypadModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-top">
+        <button id="kpCancel" class="btn ghost">Cancel</button>
+        <div id="kpTitle" class="kp-title">Enter value</div>
+        <button id="kpDone" class="btn primary">Done</button>
+      </div>
+      <div id="kpDisplay" class="kp-display" aria-live="polite">0</div>
+      <div id="kpGrid" class="kp-grid" role="application" aria-label="Numeric keypad"></div>
+    </div>
+  </div>
+
+  <!-- Edit Car Modal -->
+  <div id="editModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card small">
+      <div class="modal-top">
+        <button id="editCancel" class="btn ghost">Cancel</button>
+        <div class="kp-title">Edit Car</div>
+        <button id="editSave" class="btn primary">Save</button>
+      </div>
+      <div class="edit-form">
+        <label>Model</label>
+        <input id="editModel" type="text" />
+        <label>Reg / Plate</label>
+        <input id="editReg" type="text" />
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div id="historyModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-top">
+        <button id="histClose" class="btn ghost">Close</button>
+        <div class="kp-title">History</div>
+        <div style="width:64px"></div>
+      </div>
+      <div id="histBody" class="hist-body"></div>
+    </div>
+  </div>
+
+<script src="app.js"></script>
+</body>
+</html>
