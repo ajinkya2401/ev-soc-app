@@ -1,10 +1,10 @@
 {
-  "name": "EV SOC",
+  "name": "EV SOC Fixed",
   "short_name": "EV SOC",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#07120b",
-  "theme_color": "#0b8a3e",
+  "background_color": "#04120a",
+  "theme_color": "#00c853",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -14,11 +14,6 @@
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/apple-touch-icon.png",
-      "sizes": "180x180",
       "type": "image/png"
     }
   ]

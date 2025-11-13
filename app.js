@@ -1,4 +1,5 @@
-// app.js — EV SOC iOS-style dashboard (updated defaults & contrast)
+
+// Fixed app.js — custom keypad enforced for SOC & kWh; improved stability
 const KEY = "ev_v2_session";
 const KEY_META = "ev_v2_meta";
 const CAP = 80;
@@ -23,7 +24,7 @@ function removeKey(key){ localStorage.removeItem(key); }
 function clamp(n, a=0, b=100){ return Math.max(a, Math.min(b, n)); }
 function fmtTime(ts){ if(!ts) return ""; return new Date(ts).toLocaleTimeString(); }
 
-// Ensure defaults for meta
+// ensure defaults
 (function ensureDefaults(){
   const meta = load(KEY_META) || {};
   meta.car = meta.car || {};
@@ -32,7 +33,6 @@ function fmtTime(ts){ if(!ts) return ""; return new Date(ts).toLocaleTimeString(
   save(KEY_META, meta);
 })();
 
-// render UI
 function render(){
   const sess = load(KEY);
   const meta = load(KEY_META) || {};
@@ -63,7 +63,7 @@ function render(){
 tabPrimary.onclick = ()=>{ tabPrimary.classList.add("active"); tabSecondary.classList.remove("active"); primaryActions.classList.remove("hidden"); secondaryActions.classList.add("hidden"); }
 tabSecondary.onclick = ()=>{ tabSecondary.classList.add("active"); tabPrimary.classList.remove("active"); primaryActions.classList.add("hidden"); secondaryActions.classList.remove("hidden"); }
 
-// start session
+// actions
 startBtn.onclick = ()=>{
   const meta = load(KEY_META) || {};
   const assumed = (meta.lastSOC !== undefined && meta.lastSOC !== null) ? clamp(Math.round(meta.lastSOC),0,100) : 20;
@@ -73,18 +73,16 @@ startBtn.onclick = ()=>{
   render(); showToast(`Session started — ${assumed}%`);
 };
 
-// set current SOC
 setSocBtn.onclick = async ()=>{
   const meta = load(KEY_META) || {};
+  // Use custom keypad (integer)
   const chosen = await openKeypad({title:"Current SOC (%)", initial: String(meta.lastSOC ?? 50), integerOnly:true});
   if(chosen === null) return;
   meta.lastSOC = clamp(Math.round(chosen),0,100); save(KEY_META, meta); render(); showToast(`Saved ${meta.lastSOC}%`);
 };
 
-// view history
 historyBtn.onclick = ()=>{ openHistory(); };
 
-// add kWh
 addKwhBtn.onclick = async ()=>{
   const sess = load(KEY);
   if(!sess){ showToast("No active session — start one first"); return; }
@@ -93,7 +91,6 @@ addKwhBtn.onclick = async ()=>{
   sess.kwhAdded = chosen; sess.tsUpdate = Date.now(); save(KEY, sess); render(); showToast(`Updated ${chosen} kWh`);
 };
 
-// end session
 endBtn.onclick = ()=>{
   const sess = load(KEY);
   if(!sess){ showToast("No session to end"); return; }
@@ -103,7 +100,7 @@ endBtn.onclick = ()=>{
   save(KEY_META, meta); removeKey(KEY); render(); showToast(`Ended — ${sess.startSOC}% → ${newSOC}%`);
 };
 
-// edit
+// edit modal
 editBtn.onclick = ()=>{
   const meta = load(KEY_META) || {};
   editModel.value = meta.car?.model ?? "Hyundai KONA EV";
@@ -135,7 +132,7 @@ function openHistory(){
 }
 histClose.onclick = ()=>{ historyModal.classList.add("hidden"); }
 
-// keypad
+// keypad implementation
 function openKeypad({title="Enter", initial="0", integerOnly=false}){
   return new Promise(resolve=>{
     kpTitle.textContent = title;
@@ -176,13 +173,12 @@ function onKeyPress(key, integerOnly){
   kpDisplay.textContent = v;
 }
 
-// toast (contrasty, non-blocking)
+// toast
 function showToast(msg){
   try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
   const hud = document.createElement('div'); hud.textContent = msg;
   hud.style.position='fixed'; hud.style.bottom='18px'; hud.style.left='50%'; hud.style.transform='translateX(-50%)';
-  hud.style.background='linear-gradient(90deg, rgba(0,0,0,0.8), rgba(4,6,5,0.9))';
-  hud.style.color='#eaffef'; hud.style.padding='10px 14px'; hud.style.borderRadius='12px';
+  hud.style.background='rgba(0,0,0,0.8)'; hud.style.color='#eaffef'; hud.style.padding='10px 14px'; hud.style.borderRadius='12px';
   hud.style.zIndex=9999; hud.style.fontSize='14px'; hud.style.boxShadow='0 10px 30px rgba(0,0,0,0.6)';
   document.body.appendChild(hud);
   setTimeout(()=>{ hud.style.transition='opacity .3s'; hud.style.opacity='0'; setTimeout(()=>hud.remove(),350); }, 1100);
@@ -194,10 +190,6 @@ card.onclick = ()=>{
   if(sess) addKwhBtn.click(); else setSocBtn.click();
 };
 
-// initial render
+// init
 render();
-
-// register service worker
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
