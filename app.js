@@ -1,44 +1,43 @@
-
-// app.js — EV SOC iOS-style dashboard (premium)
-// Keys: ev_v2_session, ev_v2_meta
+// app.js — EV SOC iOS-style dashboard (updated defaults & contrast)
 const KEY = "ev_v2_session";
 const KEY_META = "ev_v2_meta";
 const CAP = 80;
 
-// helper to get element
 function el(id){ return document.getElementById(id); }
-
-// DOM elements
 const carModel = el("carModel"), carReg = el("carReg");
 const socBig = el("socBig"), gaugeFill = el("gaugeFill"), subLine = el("subLine"), timestamp = el("timestamp");
 const card = el("card");
-
 const tabPrimary = el("tabPrimary"), tabSecondary = el("tabSecondary");
 const primaryActions = el("primaryActions"), secondaryActions = el("secondaryActions");
-
 const startBtn = el("startBtn"), setSocBtn = el("setSocBtn"), historyBtn = el("historyBtn");
 const addKwhBtn = el("addKwhBtn"), endBtn = el("endBtn");
 const editBtn = el("editBtn");
-
 const keypadModal = el("keypadModal"), kpGrid = el("kpGrid"), kpDisplay = el("kpDisplay");
 const kpTitle = el("kpTitle"), kpDone = el("kpDone"), kpCancel = el("kpCancel");
-
 const editModal = el("editModal"), editModel = el("editModel"), editReg = el("editReg"), editSave = el("editSave"), editCancel = el("editCancel");
 const historyModal = el("historyModal"), histBody = el("histBody"), histClose = el("histClose");
 
-// storage helpers
 function save(key, obj){ localStorage.setItem(key, JSON.stringify(obj)); }
 function load(key){ try{ const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch(e){ return null; } }
 function removeKey(key){ localStorage.removeItem(key); }
 function clamp(n, a=0, b=100){ return Math.max(a, Math.min(b, n)); }
 function fmtTime(ts){ if(!ts) return ""; return new Date(ts).toLocaleTimeString(); }
 
+// Ensure defaults for meta
+(function ensureDefaults(){
+  const meta = load(KEY_META) || {};
+  meta.car = meta.car || {};
+  if(!meta.car.model) meta.car.model = "Hyundai KONA EV";
+  if(!meta.car.reg) meta.car.reg = "191D37789";
+  save(KEY_META, meta);
+})();
+
 // render UI
 function render(){
   const sess = load(KEY);
   const meta = load(KEY_META) || {};
-  carModel.textContent = meta.car?.model ?? "No car";
-  carReg.textContent = meta.car?.reg ?? "—";
+  carModel.textContent = meta.car?.model ?? "Hyundai KONA EV";
+  carReg.textContent = meta.car?.reg ?? "191D37789";
   card.classList.toggle("active", !!sess);
 
   let socVal = null;
@@ -60,7 +59,7 @@ function render(){
   subLine.textContent = sub;
 }
 
-// tab handlers
+// tabs
 tabPrimary.onclick = ()=>{ tabPrimary.classList.add("active"); tabSecondary.classList.remove("active"); primaryActions.classList.remove("hidden"); secondaryActions.classList.add("hidden"); }
 tabSecondary.onclick = ()=>{ tabSecondary.classList.add("active"); tabPrimary.classList.remove("active"); primaryActions.classList.add("hidden"); secondaryActions.classList.remove("hidden"); }
 
@@ -74,7 +73,7 @@ startBtn.onclick = ()=>{
   render(); showToast(`Session started — ${assumed}%`);
 };
 
-// set current SOC (integer keypad)
+// set current SOC
 setSocBtn.onclick = async ()=>{
   const meta = load(KEY_META) || {};
   const chosen = await openKeypad({title:"Current SOC (%)", initial: String(meta.lastSOC ?? 50), integerOnly:true});
@@ -85,7 +84,7 @@ setSocBtn.onclick = async ()=>{
 // view history
 historyBtn.onclick = ()=>{ openHistory(); };
 
-// add kWh (decimal keypad)
+// add kWh
 addKwhBtn.onclick = async ()=>{
   const sess = load(KEY);
   if(!sess){ showToast("No active session — start one first"); return; }
@@ -104,11 +103,11 @@ endBtn.onclick = ()=>{
   save(KEY_META, meta); removeKey(KEY); render(); showToast(`Ended — ${sess.startSOC}% → ${newSOC}%`);
 };
 
-// edit car
+// edit
 editBtn.onclick = ()=>{
   const meta = load(KEY_META) || {};
-  editModel.value = meta.car?.model ?? "";
-  editReg.value = meta.car?.reg ?? "";
+  editModel.value = meta.car?.model ?? "Hyundai KONA EV";
+  editReg.value = meta.car?.reg ?? "191D37789";
   editModal.classList.remove("hidden"); editModal.setAttribute("aria-hidden","false");
 };
 editSave.onclick = ()=>{
@@ -136,7 +135,7 @@ function openHistory(){
 }
 histClose.onclick = ()=>{ historyModal.classList.add("hidden"); }
 
-// keypad modal: returns Promise<number|null>
+// keypad
 function openKeypad({title="Enter", initial="0", integerOnly=false}){
   return new Promise(resolve=>{
     kpTitle.textContent = title;
@@ -177,20 +176,19 @@ function onKeyPress(key, integerOnly){
   kpDisplay.textContent = v;
 }
 
-// toast (non-blocking)
+// toast (contrasty, non-blocking)
 function showToast(msg){
-  // lightweight: use navigator.vibrate where available and an alert fallback
-  try{ if(navigator.vibrate) navigator.vibrate(20); }catch(e){}
-  // small non-blocking HUD
+  try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
   const hud = document.createElement('div'); hud.textContent = msg;
   hud.style.position='fixed'; hud.style.bottom='18px'; hud.style.left='50%'; hud.style.transform='translateX(-50%)';
-  hud.style.background='rgba(0,0,0,0.7)'; hud.style.color='white'; hud.style.padding='10px 14px'; hud.style.borderRadius='12px';
-  hud.style.zIndex=9999; hud.style.fontSize='14px';
+  hud.style.background='linear-gradient(90deg, rgba(0,0,0,0.8), rgba(4,6,5,0.9))';
+  hud.style.color='#eaffef'; hud.style.padding='10px 14px'; hud.style.borderRadius='12px';
+  hud.style.zIndex=9999; hud.style.fontSize='14px'; hud.style.boxShadow='0 10px 30px rgba(0,0,0,0.6)';
   document.body.appendChild(hud);
   setTimeout(()=>{ hud.style.transition='opacity .3s'; hud.style.opacity='0'; setTimeout(()=>hud.remove(),350); }, 1100);
 }
 
-// card click behaviour: add kWh if session active, otherwise set SOC
+// card click
 card.onclick = ()=>{
   const sess = load(KEY);
   if(sess) addKwhBtn.click(); else setSocBtn.click();
